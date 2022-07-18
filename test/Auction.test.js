@@ -1,8 +1,15 @@
 const { expect } = require('chai')
 const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 
+const BID_INCREMENT = '100'
+const AUCTION_STATE = {
+  Started: 0,
+  Running: 1,
+  Ended: 2,
+  Canceled: 3,
+}
+
 describe('auction contract', () => {
-  const BID_INCREMENT = '100'
   const deployAuction = async () => {
     const [owner, bidder1, bidder2] = await ethers.getSigners()
 
@@ -32,5 +39,10 @@ describe('auction contract', () => {
     await expect(hardhatAuction.connect(bidder1).placeBid()).to.be.revertedWith(
       'Not enough Ether sent.',
     )
+  })
+
+  it('should validate auctionState as "Running"', async () => {
+    const { hardhatAuction } = await loadFixture(deployAuction)
+    expect(await hardhatAuction.auctionState()).to.equal(AUCTION_STATE.Running)
   })
 })
