@@ -22,6 +22,10 @@ contract Auction {
 
     uint public bidIncrement;
 
+    // Events
+    event BidPlaced(address indexed _from, uint  _value);
+    event AuctionCancelled();
+
     constructor() {
         owner = payable(msg.sender);
         auctionState = State.Running;
@@ -32,7 +36,7 @@ contract Auction {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Not Owner!");
         _;
     }
 
@@ -83,10 +87,13 @@ contract Auction {
             highestBindingBid = min(currentBid, bids[highestBidder] + bidIncrement);
             highestBidder = payable(msg.sender);
         }
+
+        emit BidPlaced(msg.sender, msg.value);
     }
 
     function cancelAuction() public onlyOwner {
         auctionState = State.Canceled;
+        emit AuctionCancelled();
     }
 
     function finalizeAuction() public {
