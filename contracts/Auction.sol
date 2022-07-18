@@ -25,6 +25,10 @@ contract Auction {
     // Events
     event BidPlaced(address indexed _from, uint  _value);
     event AuctionCancelled();
+    event AuctionFinalized(address winner, uint amount);
+
+    // Custom Errors
+    error NotOwner(address caller);
 
     constructor() {
         owner = payable(msg.sender);
@@ -36,7 +40,9 @@ contract Auction {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Not Owner!");
+        if (msg.sender != owner) {
+            revert NotOwner(msg.sender);
+        }
         _;
     }
 
@@ -97,7 +103,7 @@ contract Auction {
     }
 
     function finalizeAuction() public {
-        require(auctionState == State.Canceled || block.number > endBlock);
+        require(auctionState == State.Canceled || block.number > endBlock, "State or Block Number Error!");
         require(msg.sender == owner || bids[msg.sender] > 0);
 
         address payable recipient;
@@ -124,5 +130,6 @@ contract Auction {
         // reseting the bid
         bids[recipient] = 0;
         recipient.transfer(value);
+        emit AuctionFinalized(highestBidder, highestBindingBid);
     }
 }
